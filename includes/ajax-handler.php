@@ -25,7 +25,7 @@ function fms_get_cities_callback() {
         ];
     }
 
-    echo json_encode($results);
+    wp_send_json($results);
     wp_die();
 }
 
@@ -52,63 +52,95 @@ function fms_get_doctors_callback() {
     ]);
 
     if (!$doctors->have_posts()) {
-        echo '<p>No doctors found for this city.</p>';
+        echo '<div class="fms-results-wrapper no-results"><p>No doctors found for this city.</p></div>';
         wp_die();
     }
 
     ob_start();
-
+    echo '<div class="fms-results-wrapper has-results">';
     while ($doctors->have_posts()) {
         $doctors->the_post();
 
-        $clinic = get_post_meta(get_the_ID(), '_fms_clinic', true);
-        $address = get_post_meta(get_the_ID(), '_fms_address', true);
-        $phone = get_post_meta(get_the_ID(), '_fms_phone', true);
-        $email = get_post_meta(get_the_ID(), '_fms_email', true);
+        $clinic   = get_post_meta(get_the_ID(), '_fms_clinic', true);
+        $address  = get_post_meta(get_the_ID(), '_fms_address', true);
+        $phone    = get_post_meta(get_the_ID(), '_fms_phone', true);
+        $email    = get_post_meta(get_the_ID(), '_fms_email', true);
         $facebook = get_post_meta(get_the_ID(), '_fms_facebook', true);
         $linkedin = get_post_meta(get_the_ID(), '_fms_linkedin', true);
-        $thumb = get_the_post_thumbnail(get_the_ID(), 'medium', ['style' => 'max-width: 100px; height: auto;']);
         $instagram = get_post_meta(get_the_ID(), '_fms_instagram', true);
-        $youtube = get_post_meta(get_the_ID(), '_fms_youtube', true);
-        $tiktok = get_post_meta(get_the_ID(), '_fms_tiktok', true);
-        $website = get_post_meta(get_the_ID(), '_fms_website', true);
+        $youtube   = get_post_meta(get_the_ID(), '_fms_youtube', true);
+        $tiktok    = get_post_meta(get_the_ID(), '_fms_tiktok', true);
+        $website   = get_post_meta(get_the_ID(), '_fms_website', true);
 
+        $title = get_the_title();
+
+        if (has_post_thumbnail()) {
+            $thumb = wp_get_attachment_image(get_post_thumbnail_id(get_the_ID()), 'medium', false, ['class' => 'doctor-thumb']);
+        } else {
+            $placeholder_url = plugin_dir_url(dirname(__DIR__)) . '/find-my-surgeon/assets/images/doctor-placeholder.jpg';
+            $thumb = '<img src="' . esc_url($placeholder_url) . '" alt="Doctor placeholder" class="doctor-thumb" />';
+        }
 
         ?>
         <div class="fms-doctor">
-            <?= $thumb ?>
-            <div class="fms-doctor-info">
-                <h3><?php the_title(); ?></h3>
-                <?php if ($clinic): ?><p><strong><?= esc_html($clinic) ?></strong></p><?php endif; ?>
-                <?php if ($address): ?><p><?= esc_html($address) ?></p><?php endif; ?>
-                <?php if ($phone): ?><p><?= esc_html($phone) ?></p><?php endif; ?>
-                <?php if ($email): ?><p><?= esc_html($email) ?></p><?php endif; ?>
-
-                <div class="fms-doctor-socials">
-                <?php if ($facebook): ?>
-                    <a href="<?= esc_url($facebook) ?>" target="_blank" title="Facebook"><i class="fab fa-facebook-f"></i></a>
-                <?php endif; ?>
-                <?php if ($instagram): ?>
-                    <a href="<?= esc_url($instagram) ?>" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>
-                <?php endif; ?>
-                <?php if ($youtube): ?>
-                    <a href="<?= esc_url($youtube) ?>" target="_blank" title="YouTube"><i class="fab fa-youtube"></i></a>
-                <?php endif; ?>
-                <?php if ($tiktok): ?>
-                    <a href="<?= esc_url($tiktok) ?>" target="_blank" title="TikTok"><i class="fab fa-tiktok"></i></a>
-                <?php endif; ?>
-                <?php if ($linkedin): ?>
-                    <a href="<?= esc_url($linkedin) ?>" target="_blank" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                <?php endif; ?>
+            <div class="doctor-thumb-wrapper">
+                <?= $thumb ?>
+            </div>
+            <div class="doctor-info">
                 <?php if ($website): ?>
-                    <a href="<?= esc_url($website) ?>" target="_blank" title="Website"><i class="fas fa-globe"></i></a>
+                    <h3 class="doctor-name">
+                    <a href="<?= esc_url($website) ?>" target="_blank" class="doctor-name-link" data-doctor="<?= esc_attr(get_the_title()) ?>">
+                        <?= get_the_title(); ?>
+                    </a>
+                    </h3>
+                <?php else: ?>
+                    <h3 class="doctor-name"><?= get_the_title(); ?></h3>
                 <?php endif; ?>
+
+                <?php if ($clinic): ?>
+                    <p class="doctor-clinic"><strong><?= esc_html($clinic) ?></strong></p>
+                <?php endif; ?>
+
+                <?php if ($address): ?>
+                    <p class="doctor-address"><?= esc_html($address) ?></p>
+                <?php endif; ?>
+
+                <div class="doctor-contact">
+                    <?php if ($phone): ?>
+                    <a href="tel:<?= esc_attr($phone) ?>" class="contact-icon" data-doctor="<?= esc_attr(get_the_title()) ?>">
+                        <i class="fas fa-phone"></i>
+                    </a>
+                    <?php endif; ?>
+                    <?php if ($email): ?>
+                    <a href="mailto:<?= esc_attr($email) ?>" class="contact-icon" data-doctor="<?= esc_attr(get_the_title()) ?>">
+                        <i class="fas fa-envelope"></i>
+                    </a>
+                    <?php endif; ?>
+                </div>
+
+                <div class="doctor-socials">
+                    <?php if ($linkedin): ?>
+                    <a href="<?= esc_url($linkedin) ?>" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+                    <?php endif; ?>
+                    <?php if ($instagram): ?>
+                    <a href="<?= esc_url($instagram) ?>" target="_blank"><i class="fab fa-instagram"></i></a>
+                    <?php endif; ?>
+                    <?php if ($youtube): ?>
+                    <a href="<?= esc_url($youtube) ?>" target="_blank"><i class="fab fa-youtube"></i></a>
+                    <?php endif; ?>
+                    <?php if ($tiktok): ?>
+                    <a href="<?= esc_url($tiktok) ?>" target="_blank"><i class="fab fa-tiktok"></i></a>
+                    <?php endif; ?>
+                    <?php if ($website): ?>
+                    <a href="<?= esc_url($website) ?>" target="_blank"><i class="fas fa-globe"></i></a>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
         <?php
     }
 
+    echo '</div>';
     wp_reset_postdata();
     echo ob_get_clean();
     wp_die();
