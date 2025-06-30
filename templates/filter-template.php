@@ -1,4 +1,6 @@
 <?php
+require_once plugin_dir_path(__FILE__) . '../includes/translations.php';
+
 $countries = get_terms([
     'taxonomy' => 'location',
     'parent' => 0,
@@ -25,11 +27,11 @@ $pdf_url = plugin_dir_url(__DIR__) . 'assets/pdf/questions-' . $lang . '.pdf';
     <div class="fms-filters">
         <div class="fms-filters-inner">
             <div class="fms-form-wrapper">
-                <h2>Find my surgeon</h2>
-                <h3>Find your GalaFLEX Internal Bra™ surgeon</h3>
-                <label for="fms_country">Please select your region of interest:</label>
+                <h2><?php echo fms_t('title'); ?></h2>
+                <h3><?php echo fms_t('subtitle'); ?></h3>
+                <label for="fms_country"><?php echo fms_t('select_label'); ?></label>
                 <div class="fms-dropdown fms-field" id="fms_country_dropdown">
-                    <div class="fms-dropdown-selected">COUNTRY</div>
+                    <div class="fms-dropdown-selected"><?php echo fms_t('country'); ?></div>
                     <ul class="fms-dropdown-options">
                         <?php foreach ($countries as $country): ?>
                             <li data-value="<?= esc_attr($country->term_id) ?>"><?= esc_html($country->name) ?></li>
@@ -38,17 +40,17 @@ $pdf_url = plugin_dir_url(__DIR__) . 'assets/pdf/questions-' . $lang . '.pdf';
                     <input type="hidden" name="fms_country" id="fms_country" value="">
                 </div>
                 <div class="fms-dropdown fms-field disabled" id="fms_city_dropdown">
-                    <div class="fms-dropdown-selected">Select City</div>
+                    <div class="fms-dropdown-selected"><?php echo fms_t('city'); ?></div>
                     <ul class="fms-dropdown-options"></ul>
                     <input type="hidden" name="fms_city" id="fms_city" value="">
                 </div>
-                <button id="fms_search">SEARCH</button>
+                <button id="fms_search"><?php echo fms_t('search'); ?></button>
             </div>
             <div class="fms-download">
                 <span class="fms-download-icon"></span>
                     <div>
-                        <strong><a href="<?= esc_url($pdf_url) ?>" target="_blank">Download</a></strong><br>
-                        <small>the printable questions sheet<br>to ask your surgeon</small>
+                        <strong><a href="<?= esc_url($pdf_url) ?>" target="_blank"><?php echo fms_t('download_strong'); ?></a></strong><br>
+                        <small><?php echo fms_t('download_text'); ?></small>
                     </div>
             </div>
         </div>

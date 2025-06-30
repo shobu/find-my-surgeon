@@ -15,6 +15,9 @@ function fms_enqueue_assets() {
     wp_enqueue_style('fms-style', plugin_dir_url(__FILE__) . 'assets/css/style.css');
     wp_enqueue_script('fms-script', plugin_dir_url(__FILE__) . 'assets/js/filter.js', ['jquery'], null, true);
 
+    require_once plugin_dir_path(__FILE__) . 'includes/translations.php';
+    
+    wp_localize_script('fms-script', 'fms_strings', fms_get_js_translations());
     wp_localize_script('fms-script', 'fms_ajax_obj', [
         'ajax_url' => admin_url('admin-ajax.php')
     ]);

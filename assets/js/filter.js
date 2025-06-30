@@ -53,7 +53,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const cityOptions = cityDropdown.querySelector('.fms-dropdown-options');
     const cityHiddenInput = document.querySelector('#fms_city');
 
-    function disableCityDropdown(message = 'Select City') {
+    function disableCityDropdown(message) {
+        message = message || (typeof fms_strings !== 'undefined' ? fms_strings.select_city : 'Select City');
         cityDropdown.classList.add('disabled');
         citySelected.textContent = message;
         cityOptions.innerHTML = '';
@@ -62,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function populateCities(cities) {
         if (!cities.length) {
-            disableCityDropdown('No cities available');
+            disableCityDropdown(fms_strings.no_cities);
             return;
         }
 
@@ -77,7 +78,7 @@ document.addEventListener('DOMContentLoaded', function () {
             cityOptions.appendChild(li);
         });
 
-        citySelected.textContent = 'Select City';
+        citySelected.textContent = fms_strings.select_city;
     }
 
     countrySelected.addEventListener('click', function () {
@@ -105,14 +106,18 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(data => {
                 if (!Array.isArray(data)) {
                     console.warn('Expected array but got:', data);
-                    disableCityDropdown('Error loading cities');
+                    disableCityDropdown(fms_strings.ajax_error);
                     return;
                 }
+                if (data.length === 0) {
+                    disableCityDropdown(fms_strings.no_cities);
+                return;
+            }
                 populateCities(data);
             })
             .catch(error => {
                 console.error('Error loading cities:', error);
-                disableCityDropdown('Error loading cities');
+                disableCityDropdown(fms_strings.ajax_error);
             });
 
             countryOptions.classList.remove('show');
