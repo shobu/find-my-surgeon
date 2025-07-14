@@ -11,12 +11,9 @@ add_action('admin_menu', function () {
 });
 
 function fms_import_doctors_page() {
-
     echo '<h1> Import Doctors </h1> <hr>';
-
     echo '<div style="margin: 50px 0;"></div>';
     echo '<h2>STEP ONE</h2>';
-
     echo '<div class="wrap"><h3>Upload ZIP with Doctor Images</h3>';
 
     if (isset($_POST['upload_zip']) && check_admin_referer('fms_upload_zip')) {
@@ -50,9 +47,7 @@ function fms_import_doctors_page() {
     echo '<br><br><input type="submit" name="upload_zip" class="button" value="Upload ZIP">';
     echo '</form></div>';
 
-    echo '<div style="margin: 25px 0;"></div>';
-    echo '<hr>';
-    echo '<div style="margin: 25px 0;"></div>';
+    echo '<div style="margin: 25px 0;"></div><hr><div style="margin: 25px 0;"></div>';
     echo '<h2>STEP TWO</h2>';
     echo '<div class="wrap"><h3>Import Doctors from Excel</h3>';
 
@@ -60,7 +55,6 @@ function fms_import_doctors_page() {
 
     if (isset($_POST['submit']) && check_admin_referer('fms_import_doctors')) {
         require_once plugin_dir_path(__FILE__) . '../vendor/autoload.php';
-
         $file = $_FILES['fms_excel_file'];
         $log = [];
         $row_index = 2;
@@ -98,8 +92,11 @@ function fms_import_doctors_page() {
                 $city      = $row_assoc['city'] ?? '';
                 $image_filename = $row_assoc['image_filename'] ?? '';
 
+                $entry_log = [];
+
                 if (!$email || get_posts(['post_type' => 'doctor', 'meta_key' => '_fms_email', 'meta_value' => $email, 'numberposts' => 1])) {
-                    $log[] = "[$email] Already exists or invalid. Skipped.";
+                    $entry_log[] = "Already exists or invalid. Skipped.";
+                    $log[$email] = $entry_log;
                     $row_index++;
                     continue;
                 }
@@ -108,7 +105,8 @@ function fms_import_doctors_page() {
                 $city_term = get_term_by('name', $city, 'location');
 
                 if (!$country_term || !$city_term || $city_term->parent != $country_term->term_id) {
-                    $log[] = "[$email] Invalid country or city: {$country} / {$city}. Skipped.";
+                    $entry_log[] = "Invalid country or city: {$country} / {$city}. Skipped.";
+                    $log[$email] = $entry_log;
                     $row_index++;
                     continue;
                 }
@@ -121,10 +119,12 @@ function fms_import_doctors_page() {
                 ]);
 
                 if (is_wp_error($post_id)) {
-                    $log[] = "[$email] Failed to create post.";
+                    $entry_log[] = "Failed to create post.";
+                    $log[$email] = $entry_log;
                     $row_index++;
                     continue;
                 }
+
                 update_post_meta($post_id, '_fms_clinic', $clinic);
                 update_post_meta($post_id, '_fms_address', $address);
                 update_post_meta($post_id, '_fms_phone', $phone);
@@ -136,36 +136,51 @@ function fms_import_doctors_page() {
                 update_post_meta($post_id, '_fms_youtube', $youtube);
                 update_post_meta($post_id, '_fms_tiktok', $tiktok);
 
-
                 wp_set_post_terms($post_id, [$city_term->term_id], 'location', false);
 
                 $upload_dir = wp_upload_dir();
                 $images_dir = $upload_dir['basedir'] . '/fms-import/images';
-                $expected_image = $images_dir . '/' . $image_filename;
+                $images_url = $upload_dir['baseurl'] . '/fms-import/images';
 
-                if (file_exists($expected_image)) {
-                    $attach_id = fms_attach_image_to_post($expected_image, $post_id);
+                $prefix_parts = explode('-', $image_filename);
+                $image_prefix_folder = $prefix_parts[0] ?? '';
+                $search_dir = $image_prefix_folder ? $images_dir . '/' . $image_prefix_folder : $images_dir;
+                $image_full_path = $search_dir . '/' . $image_filename;
+                $image_full_url = $image_prefix_folder ? $images_url . '/' . $image_prefix_folder . '/' . $image_filename : $images_url . '/' . $image_filename;
+
+                $entry_log[] = "Looking for file: $image_full_path";
+                $entry_log[] = "URL would be: $image_full_url";
+
+                if (file_exists($image_full_path)) {
+                    $entry_log[] = "Image found at: $image_full_path";
+                    $attach_id = fms_attach_image_to_post($image_full_path, $post_id);
                     if ($attach_id) set_post_thumbnail($post_id, $attach_id);
                 } else {
+                    $entry_log[] = "Image NOT found. Using placeholder.";
                     $placeholder_url = $upload_dir['baseurl'] . '/2025/06/doctor-placeholder.jpg';
                     $attach_id = fms_attach_external_image($placeholder_url, $post_id);
                     if ($attach_id) {
                         set_post_thumbnail($post_id, $attach_id);
-                        $log[] = "[$email] Image not found. Used placeholder.";
+                        $entry_log[] = "Placeholder attached.";
                     } else {
-                        $log[] = "[$email] Image not found and placeholder failed.";
+                        $entry_log[] = "Placeholder failed.";
                     }
                 }
 
-                $log[] = "[$email] Successfully imported.";
+                $entry_log[] = "Successfully imported.";
+                $log[$email] = $entry_log;
                 $row_index++;
             }
         } else {
-            $log[] = "Upload error.";
+            $log['error'] = ["Upload error."];
         }
 
         echo '<h2>Import Results</h2><ul>';
-        foreach ($log as $line) echo '<li>' . esc_html($line) . '</li>';
+        foreach ($log as $email => $entries) {
+            echo '<li><strong>' . esc_html($email) . '</strong><ul>';
+            foreach ($entries as $line) echo '<li>' . esc_html($line) . '</li>';
+            echo '</ul></li>';
+        }
         echo '</ul>';
     }
 
@@ -174,8 +189,6 @@ function fms_import_doctors_page() {
     echo '<input type="file" name="fms_excel_file" accept=".xlsx,.xls" required>';
     echo '<br><br><input type="submit" name="submit" class="button button-primary" value="Import">';
     echo '</form>';
-
-   
 }
 
 function fms_attach_image_to_post($filepath, $post_id) {
@@ -216,4 +229,15 @@ function fms_attach_external_image($url, $post_id) {
     }
 
     return $attach_id;
+}
+
+function fms_find_image_recursive($directory, $filename) {
+    if (!file_exists($directory)) return false;
+    $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory));
+    foreach ($iterator as $file) {
+        if ($file->isFile() && strtolower($file->getFilename()) === strtolower($filename)) {
+            return $file->getPathname();
+        }
+    }
+    return false;
 }
