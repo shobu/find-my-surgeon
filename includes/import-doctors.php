@@ -98,7 +98,7 @@ function fms_import_doctors_page() {
                 $city      = $row_assoc['city'] ?? '';
                 $image_filename = $row_assoc['image_filename'] ?? '';
 
-                if (!$email || get_posts(['post_type' => 'doctor', 'meta_key' => 'email', 'meta_value' => $email, 'numberposts' => 1])) {
+                if (!$email || get_posts(['post_type' => 'doctor', 'meta_key' => '_fms_email', 'meta_value' => $email, 'numberposts' => 1])) {
                     $log[] = "[$email] Already exists or invalid. Skipped.";
                     $row_index++;
                     continue;
