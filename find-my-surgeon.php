@@ -42,3 +42,5 @@ require_once plugin_dir_path(__FILE__) . 'includes/cpt-doctor.php';
 require_once plugin_dir_path(__FILE__) . 'includes/taxonomies.php';
 
 require_once plugin_dir_path(__FILE__) . 'includes/meta-doctor-details.php';
+
+require_once plugin_dir_path(__FILE__) . 'includes/import-doctors.php';

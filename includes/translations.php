@@ -19,13 +19,13 @@ if (!function_exists('fms_t')) {
             $translations = [
                 'title' => [
                     'en' => 'Find my surgeon',
-                    'de' => 'Meinen Chirurgen finden',
+                    'de' => 'Chirurgen finden',
                     'it' => 'Trova il mio chirurgo',
                     'gr' => 'Βρες τον χειρουργό σου',
                 ],
                 'subtitle' => [
                     'en' => 'Find your GalaFLEX Internal Bra™ Scaffold surgeon',
-                    'de' => 'Finden Sie Ihren GalaFLEX<br/>Internal Bra™ Scaffold-Chirurgen',
+                    'de' => 'Finden Sie einen GalaFLEX<br/>Internal Bra™ Scaffold-Chirurgen',
                     'it' => 'Trova il tuo chirurgo Internal Bra',
                     'gr' => 'Βρείτε τον δικό σας χειρουργό για το<br/>Ικρίωμα GalaFLEX Internal Bra™',
                 ],
