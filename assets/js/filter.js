@@ -1,10 +1,9 @@
-console.log("filter.js loaded!");
-
 jQuery(document).ready(function($) {
     $('#fms_search').on('click', function(e) {
         e.preventDefault();
 
         var cityId = $('#fms_city').val();
+        var countryId = $('#fms_country').val();
 
         if (!cityId) {
             alert('Please select a city.');
@@ -30,6 +29,21 @@ jQuery(document).ready(function($) {
                     $('#doctors-results').removeClass('has-results');
                 }
 
+                // Track search event
+                if (typeof gtag === 'function') {
+                    gtag('event', 'fms_search', {
+                        event_category: 'Find My Surgeon',
+                        event_label: countryId + ' - ' + cityId
+                    });
+                }
+                if (typeof window.dataLayer !== 'undefined') {
+                    window.dataLayer.push({
+                        event: 'fms_search',
+                        country_id: countryId,
+                        city_id: cityId
+                    });
+                }
+
                 document.getElementById('doctors-results').scrollIntoView({
                     behavior: 'smooth',
                     block: 'start'
@@ -39,6 +53,19 @@ jQuery(document).ready(function($) {
                 $('#doctors-results').html('<p>Error loading results.</p>');
             }
         });
+    });
+
+    // Track doctor profile click
+    $(document).on('click', '.fms-doctor a.fms-doctor-link', function() {
+        var doctorName = $(this).data('doctor-name') || 'Unknown';
+        fmsTrackClick(doctorName, 'profile');
+    });
+
+    // Track social icon clicks
+    $(document).on('click', '.fms-social-icon', function() {
+        var doctorName = $(this).data('doctor-name') || 'Unknown';
+        var type = $(this).data('type') || 'other'; 
+        fmsTrackClick(doctorName, type);
     });
 });
 
@@ -111,8 +138,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 if (data.length === 0) {
                     disableCityDropdown(fms_strings.no_cities);
-                return;
-            }
+                    return;
+                }
                 populateCities(data);
             })
             .catch(error => {
@@ -147,13 +174,20 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-
+// Tracking function (gtag + GTM)
 function fmsTrackClick(doctorName, action) {
-  if (typeof gtag === 'function') {
-    gtag('event', 'click', {
-      event_category: 'Doctor Interaction',
-      event_label: doctorName,
-      value: action
-    });
-  }
+    if (typeof gtag === 'function') {
+        gtag('event', 'fms_click', {
+            event_category: 'Doctor Interaction',
+            event_label: doctorName,
+            action_type: action
+        });
+    }
+    if (typeof window.dataLayer !== 'undefined') {
+        window.dataLayer.push({
+            event: 'fms_click',
+            doctor_name: doctorName,
+            action_type: action
+        });
+    }
 }

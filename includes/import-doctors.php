@@ -65,6 +65,15 @@ function fms_import_doctors_page() {
             $rows = $sheet->toArray(null, true, true, true);
 
             $headers = array_map('trim', $rows[1]);
+
+            $required_columns = ['email','first_name','last_name','country','city'];
+            foreach ($required_columns as $req) {
+                if (!in_array($req, $headers)) {
+                    echo '<div class="notice notice-error"><p>Excel missing required column: ' . esc_html($req) . '</p></div>';
+                    return;
+                }
+            }
+
             unset($rows[1]);
 
             foreach ($rows as $index => $row) {
@@ -94,12 +103,73 @@ function fms_import_doctors_page() {
 
                 $entry_log = [];
 
-                if (!$email || get_posts(['post_type' => 'doctor', 'meta_key' => '_fms_email', 'meta_value' => $email, 'numberposts' => 1])) {
-                    $entry_log[] = "Already exists or invalid. Skipped.";
+                $existing = get_posts([
+                    'post_type'  => 'doctor',
+                    'meta_key'   => '_fms_email',
+                    'meta_value' => $email,
+                    'numberposts'=> 1
+                ]);
+
+                $update_mode = !empty($_POST['fms_update_mode']);
+
+                if (!$email) {
+                    $entry_log[] = "Missing email. Skipped.";
                     $log[$email] = $entry_log;
                     $row_index++;
                     continue;
                 }
+
+                if ($existing) {
+                    // UPDATE MODE
+                    if ($update_mode) {
+                        $post_id = $existing[0]->ID;
+                        $entry_log[] = "Updating existing doctor (ID: $post_id).";
+                        $is_update = true;
+                    } else {
+                        $entry_log[] = "Already exists. Skipped.";
+                        $log[$email] = $entry_log;
+                        $row_index++;
+                        continue;
+                    }
+                } else {
+                    // INSERT NEW
+                    $is_update = false;
+                }
+
+                if (!$is_update) {
+                    if (!$first || !$last || !$country || !$city) {
+                        $entry_log[] = "Missing required fields for new entry. Skipped.";
+                        $log[$email] = $entry_log;
+                        continue;
+                    }
+                    $full_name = trim("$prefix $first $last") ?: $clinic;
+                    $post_id = wp_insert_post([
+                        'post_type' => 'doctor',
+                        'post_status' => 'publish',
+                        'post_title' => $full_name,
+                    ]);
+                } else {
+                    $full_name = trim("$prefix $first $last");
+                    if (!empty($full_name)) wp_update_post(['ID'=>$post_id,'post_title'=>$full_name]);
+                }
+
+                if (is_wp_error($post_id)) {
+                    $entry_log[] = "Failed to create post.";
+                    $log[$email] = $entry_log;
+                    $row_index++;
+                    continue;
+                }
+
+                if ($clinic !== '') update_post_meta($post_id, '_fms_clinic', $clinic);
+                if ($address !== '') update_post_meta($post_id, '_fms_address', $address);
+                if ($phone !== '') update_post_meta($post_id, '_fms_phone', $phone);
+                // _fms_email must NOT update
+                if ($website !== '') update_post_meta($post_id, '_fms_website', $website);
+                if ($facebook !== '') update_post_meta($post_id, '_fms_facebook', $facebook);
+                if ($linkedin !== '') update_post_meta($post_id, '_fms_linkedin', $linkedin);
+                if ($instagram !== '') update_post_meta($post_id, '_fms_instagram', $instagram);
+                if ($youtube !== '') update_post_meta($post_id, '_fms_youtube', $youtube);
+                if ($tiktok !== '') update_post_meta($post_id, '_fms_tiktok', $tiktok);
 
                 $country_term = get_term_by('name', $country, 'location');
                 $city_term = get_term_by('name', $city, 'location');
@@ -111,32 +181,9 @@ function fms_import_doctors_page() {
                     continue;
                 }
 
-                $full_name = trim("$prefix $first $last") ?: $clinic;
-                $post_id = wp_insert_post([
-                    'post_type' => 'doctor',
-                    'post_status' => 'publish',
-                    'post_title' => $full_name,
-                ]);
-
-                if (is_wp_error($post_id)) {
-                    $entry_log[] = "Failed to create post.";
-                    $log[$email] = $entry_log;
-                    $row_index++;
-                    continue;
+                if (!$is_update || ($country !== '' && $city !== '')) {
+                    wp_set_post_terms($post_id, [$city_term->term_id], 'location', false);
                 }
-
-                update_post_meta($post_id, '_fms_clinic', $clinic);
-                update_post_meta($post_id, '_fms_address', $address);
-                update_post_meta($post_id, '_fms_phone', $phone);
-                update_post_meta($post_id, '_fms_email', $email);
-                update_post_meta($post_id, '_fms_website', $website);
-                update_post_meta($post_id, '_fms_facebook', $facebook);
-                update_post_meta($post_id, '_fms_linkedin', $linkedin);
-                update_post_meta($post_id, '_fms_instagram', $instagram);
-                update_post_meta($post_id, '_fms_youtube', $youtube);
-                update_post_meta($post_id, '_fms_tiktok', $tiktok);
-
-                wp_set_post_terms($post_id, [$city_term->term_id], 'location', false);
 
                 $upload_dir = wp_upload_dir();
                 $images_dir = $upload_dir['basedir'] . '/fms-import/images';
@@ -148,26 +195,30 @@ function fms_import_doctors_page() {
                 $image_full_path = $search_dir . '/' . $image_filename;
                 $image_full_url = $image_prefix_folder ? $images_url . '/' . $image_prefix_folder . '/' . $image_filename : $images_url . '/' . $image_filename;
 
-                $entry_log[] = "Looking for file: $image_full_path";
-                $entry_log[] = "URL would be: $image_full_url";
-
-                if (file_exists($image_full_path)) {
-                    $entry_log[] = "Image found at: $image_full_path";
-                    $attach_id = fms_attach_image_to_post($image_full_path, $post_id);
-                    if ($attach_id) set_post_thumbnail($post_id, $attach_id);
-                } else {
-                    $entry_log[] = "Image NOT found. Using placeholder.";
-                    $placeholder_url = $upload_dir['baseurl'] . '/2025/06/doctor-placeholder.jpg';
-                    $attach_id = fms_attach_external_image($placeholder_url, $post_id);
-                    if ($attach_id) {
-                        set_post_thumbnail($post_id, $attach_id);
-                        $entry_log[] = "Placeholder attached.";
+                if (!$is_update) {
+                    // NEW ENTRY — always try to attach image or placeholder
+                    if ($image_filename !== '' && file_exists($image_full_path)) {
+                        $attach_id = fms_attach_image_to_post($image_full_path, $post_id);
+                        if ($attach_id) set_post_thumbnail($post_id, $attach_id);
                     } else {
-                        $entry_log[] = "Placeholder failed.";
+                        $placeholder_url = $upload_dir['baseurl'] . '/2025/06/doctor-placeholder.jpg';
+                        $attach_id = fms_attach_external_image($placeholder_url, $post_id);
+                        if ($attach_id) set_post_thumbnail($post_id, $attach_id);
+                    }
+                } else {
+                    // UPDATE MODE — update image only if filename exists AND file exists
+                    if ($image_filename !== '' && file_exists($image_full_path)) {
+                        $attach_id = fms_attach_image_to_post($image_full_path, $post_id);
+                        if ($attach_id) set_post_thumbnail($post_id, $attach_id);
+                    } else {
+                        $entry_log[] = "Image empty or missing — keeping existing image.";
                     }
                 }
 
                 $entry_log[] = "Successfully imported.";
+                if ($is_update) $entry_log[] = "Update completed.";
+                else $entry_log[] = "Insert completed.";
+
                 $log[$email] = $entry_log;
                 $row_index++;
             }
@@ -187,6 +238,9 @@ function fms_import_doctors_page() {
     echo '<form method="post" enctype="multipart/form-data">';
     wp_nonce_field('fms_import_doctors');
     echo '<input type="file" name="fms_excel_file" accept=".xlsx,.xls" required>';
+    echo '<label style="margin-top:10px; display:block;">
+      <input type="checkbox" name="fms_update_mode" value="1"> Enable Update Mode (update existing doctors)
+  </label>';
     echo '<br><br><input type="submit" name="submit" class="button button-primary" value="Import">';
     echo '</form>';
 }

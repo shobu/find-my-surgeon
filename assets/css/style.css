@@ -158,6 +158,8 @@
 @media (max-width: 768px) {
     .fms-container {
         flex-direction: column;
+		height: 1200px;
+    	max-height: 1200px;
     }
 
     .fms-results {
@@ -421,6 +423,12 @@
   scrollbar-color: rgba(255,255,255,0.4) transparent;
 }
 
+.fms-disclaimer {
+  font-size: 11px;
+  padding: 10px;
+  margin-top: 30px;
+}
+
 /* Responsive adjustments */
 @media (max-width: 480px) {
   .fms-dropdown-selected {
@@ -463,13 +471,33 @@
 
 .fms-download {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
+  align-items: center;
+  gap: 18px;
   margin-top: 50px;
-  color: white;
+
+  color: #ffffff;
   font-size: 14px;
   line-height: 1.4;
   cursor: pointer;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.35);
+  border-right: 1px solid rgba(255, 255, 255, 0.35);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+  border-left: none;
+  border-radius: 0 80px 80px 0;
+
+  padding: 10px 25px 15px 40px;
+
+  margin-left: -40px;
+  width: calc(100% + 40px);
+  max-width: 520px;
+
+  box-sizing: border-box;
+}
+
+.fms-download > div {
+  display: flex;
+  flex-direction: column;
 }
 
 .fms-download a,
@@ -487,14 +515,34 @@
   font-size: 16px;
   display: block;
 }
-
 .fms-download-icon {
-  width: 16px;
-  height: 16px;
-  margin-top: 5px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 13.44 30.93'%3E%3Cpath fill='none' stroke='%23ffffff' stroke-miterlimit='10' stroke-width='2' d='M12.74.71 3.14 10.31c-2.85 2.85-2.85 7.47 0 10.32l9.6 9.6'/%3E%3C/svg%3E");
-  background-size: 12px 24px;
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
+  border-radius: 50%;
   background-repeat: no-repeat;
   background-position: center;
-  transform: rotate(270deg);
+  background-size: contain;
+  background-image: url('/internalbra-support/wp-content/plugins/find-my-surgeon/assets/images/download-icon.svg');
+}
+
+
+@media (max-width: 1300px) {
+  .fms-download {
+    margin-top: 0px;
+    width: calc(100% + 20px);
+    max-width: none;
+    border-radius: 0 50px 50px 0;
+  }
+}
+
+
+@media (max-width: 768px) {
+  .fms-download {
+    margin-top: 40px;
+    margin-left: -20px;
+    width: calc(100% + 20px);
+    max-width: none;
+    border-radius: 0 50px 50px 0;
+  }
 }

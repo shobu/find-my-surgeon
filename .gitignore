@@ -2,6 +2,12 @@
 .DS_Store
 .idea/
 .vscode/
+*.log
+node_modules/
 
 # Composer/vendor
 vendor/
+
+# Legacy backup files kept locally, not tracked (candidates for cleanup)
+*_noga4
+*_old_download_button

@@ -7,19 +7,41 @@ $countries = get_terms([
     'hide_empty' => false,
 ]);
 
-// Detect locale from URL path
-$uri = $_SERVER['REQUEST_URI'];
-
-if (strpos($uri, '/gr') === 0) {
-    $lang = 'gr';
-} elseif (strpos($uri, '/de') === 0) {
-    $lang = 'de';
-} elseif (strpos($uri, '/it') === 0) {
-    $lang = 'it';
-} else {
-    $lang = 'en'; // default fallback
+if (!function_exists('fms_get_current_language')) {
+    function fms_get_current_language() {
+        $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+        if (preg_match('#/(gr|en|de|it|fr|nl)/?$#i', $path, $m)) {
+            return strtolower($m[1]); 
+        }
+        return 'en'; // fallback
+    }
 }
-$pdf_url = plugin_dir_url(__DIR__) . 'assets/pdf/questions-' . $lang . '.pdf';
+
+function fms_get_pdf_url($basename = 'questions') {
+    $lang = fms_get_current_language();
+
+    $map = [
+        'gr' => "assets/pdf/{$basename}-gr.pdf",
+        'en' => "assets/pdf/{$basename}-en.pdf",
+        'it' => "assets/pdf/{$basename}-it.pdf",
+        'de' => "assets/pdf/{$basename}-de.pdf",
+        'fr' => "assets/pdf/{$basename}-fr.pdf",
+        'nl' => "assets/pdf/{$basename}-nl.pdf",
+    ];
+
+    $rel_path  = $map[$lang] ?? $map['en'];
+    $base_url  = plugin_dir_url(__DIR__);
+    $base_path = plugin_dir_path(__DIR__);
+
+    if (!file_exists($base_path . $rel_path)) {
+        $rel_path = $map['en'];
+    }
+
+    return $base_url . $rel_path;
+}
+
+$pdf_url = fms_get_pdf_url();
+
 ?>
 
 <div class="fms-container">
@@ -44,12 +66,22 @@ $pdf_url = plugin_dir_url(__DIR__) . 'assets/pdf/questions-' . $lang . '.pdf';
                     <ul class="fms-dropdown-options"></ul>
                     <input type="hidden" name="fms_city" id="fms_city" value="">
                 </div>
-                <button id="fms_search"><?php echo fms_t('search'); ?></button>
+                <button id="fms_search" data-fms-event-type="search_button"><?php echo fms_t('search'); ?></button>
+                <?php 
+                    $lang = fms_get_current_language();
+                    if ($lang == 'de') { ?>
+                <div class="fms-disclaimer">
+                    Die Chirurgensuche enthält Daten von Ärzten, die GalaFLEX™ Scaffold nutzen und hier genannt werden möchten.
+                    Diese Liste ist keine vollständige Liste aller Chirurgen in Deutschland, die einen solchen Eingriff vornehmen können.
+                    Diese Liste stellt keine Arztempfehlung dar. Im Zweifel wenden Sie sich als Patientin an Ihren Frauenarzt.
+                    Weitere Chirurgen nehmen wir gerne auf. Bitte wenden Sie sich als Chirurg an SURGERY-GSA-Marketing@bd.com.
+                </div>
+                <?php } ?>
             </div>
             <div class="fms-download">
                 <span class="fms-download-icon"></span>
                     <div>
-                        <strong><a href="<?= esc_url($pdf_url) ?>" target="_blank"><?php echo fms_t('download_strong'); ?></a></strong><br>
+                        <strong><a href="<?= esc_url($pdf_url) ?>" target="_blank"><?php echo fms_t('download_strong'); ?></a></strong>
                         <small><?php echo fms_t('download_text'); ?></small>
                     </div>
             </div>

@@ -66,13 +66,13 @@ function fms_get_doctors_callback() {
         $phone    = get_post_meta(get_the_ID(), '_fms_phone', true);
         $email    = get_post_meta(get_the_ID(), '_fms_email', true);
         $facebook = get_post_meta(get_the_ID(), '_fms_facebook', true);
-        $linkedin = get_post_meta(get_the_ID(), '_fms_linkedin', true);
+        $post_id  = get_the_ID();
+        $title    = get_the_title();
+        $linkedin = get_post_meta($post_id, '_fms_linkedin', true);
         $instagram = get_post_meta(get_the_ID(), '_fms_instagram', true);
         $youtube   = get_post_meta(get_the_ID(), '_fms_youtube', true);
         $tiktok    = get_post_meta(get_the_ID(), '_fms_tiktok', true);
         $website   = get_post_meta(get_the_ID(), '_fms_website', true);
-
-        $title = get_the_title();
 
         if (has_post_thumbnail()) {
             $thumb = wp_get_attachment_image(get_post_thumbnail_id(get_the_ID()), 'medium', false, ['class' => 'doctor-thumb']);
@@ -89,7 +89,12 @@ function fms_get_doctors_callback() {
             <div class="doctor-info">
                 <?php if ($website): ?>
                     <h3 class="doctor-name">
-                    <a href="<?= esc_url($website) ?>" target="_blank" class="doctor-name-link" data-doctor="<?= esc_attr(get_the_title()) ?>">
+                    <a href="<?= esc_url($website) ?>" target="_blank"
+                    class="fms-doctor-link"
+                    data-doctor-id="<?= esc_attr($post_id) ?>"
+                    data-doctor-name="<?= esc_attr($title) ?>"
+                    data-fms-event-type="doctor_profile"
+                    data-target-url="<?= esc_url($website) ?>">
                         <?= get_the_title(); ?>
                     </a>
                     </h3>
@@ -107,12 +112,24 @@ function fms_get_doctors_callback() {
 
                 <div class="doctor-contact">
                     <?php if ($phone): ?>
-                    <a href="tel:<?= esc_attr($phone) ?>" class="contact-icon" data-doctor="<?= esc_attr(get_the_title()) ?>">
+                    <a href="tel:<?= esc_attr($phone) ?>"
+                    class="fms-social-icon"
+                    data-type="phone"
+                    data-doctor-id="<?= esc_attr($post_id) ?>"
+                    data-doctor-name="<?= esc_attr($title) ?>"
+                    data-fms-event-type="doctor_phone"
+                    data-target-url="tel:<?= esc_attr($phone) ?>">
                         <i class="fas fa-phone"></i>
                     </a>
                     <?php endif; ?>
                     <?php if ($email): ?>
-                    <a href="mailto:<?= esc_attr($email) ?>" class="contact-icon" data-doctor="<?= esc_attr(get_the_title()) ?>">
+                    <a href="mailto:<?= esc_attr($email) ?>"
+                    class="fms-social-icon"
+                    data-type="email"
+                    data-doctor-id="<?= esc_attr($post_id) ?>"
+                    data-doctor-name="<?= esc_attr($title) ?>"
+                    data-fms-event-type="doctor_email"
+                    data-target-url="mailto:<?= esc_attr($email) ?>">
                         <i class="fas fa-envelope"></i>
                     </a>
                     <?php endif; ?>
@@ -120,19 +137,59 @@ function fms_get_doctors_callback() {
 
                 <div class="doctor-socials">
                     <?php if ($linkedin): ?>
-                    <a href="<?= esc_url($linkedin) ?>" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="<?= esc_url($linkedin) ?>" target="_blank"
+                    class="fms-social-icon"
+                    data-type="linkedin"
+                    data-doctor-id="<?= esc_attr($post_id) ?>"
+                    data-doctor-name="<?= esc_attr($title) ?>"
+                    data-fms-event-type="doctor_linkedin"
+                    data-target-url="<?= esc_url($linkedin) ?>">
+                    <i class="fab fa-linkedin-in"></i>
+                    </a>
                     <?php endif; ?>
                     <?php if ($instagram): ?>
-                    <a href="<?= esc_url($instagram) ?>" target="_blank"><i class="fab fa-instagram"></i></a>
+                    <a href="<?= esc_url($instagram) ?>" target="_blank"
+                    class="fms-social-icon"
+                    data-type="instagram"
+                    data-doctor-id="<?= esc_attr($post_id) ?>"
+                    data-doctor-name="<?= esc_attr($title) ?>"
+                    data-fms-event-type="doctor_instagram"
+                    data-target-url="<?= esc_url($instagram) ?>">
+                    <i class="fab fa-instagram"></i>
+                    </a>
                     <?php endif; ?>
                     <?php if ($youtube): ?>
-                    <a href="<?= esc_url($youtube) ?>" target="_blank"><i class="fab fa-youtube"></i></a>
+                    <a href="<?= esc_url($youtube) ?>" target="_blank"
+                    class="fms-social-icon"
+                    data-type="youtube"
+                    data-doctor-id="<?= esc_attr($post_id) ?>"
+                    data-doctor-name="<?= esc_attr($title) ?>"
+                    data-fms-event-type="doctor_youtube"
+                    data-target-url="<?= esc_url($youtube) ?>">
+                    <i class="fab fa-youtube"></i>
+                    </a>
                     <?php endif; ?>
                     <?php if ($tiktok): ?>
-                    <a href="<?= esc_url($tiktok) ?>" target="_blank"><i class="fab fa-tiktok"></i></a>
+                    <a href="<?= esc_url($tiktok) ?>" target="_blank"
+                    class="fms-social-icon"
+                    data-type="tiktok"
+                    data-doctor-id="<?= esc_attr($post_id) ?>"
+                    data-doctor-name="<?= esc_attr($title) ?>"
+                    data-fms-event-type="doctor_tiktok"
+                    data-target-url="<?= esc_url($tiktok) ?>">
+                    <i class="fab fa-tiktok"></i>
+                    </a>
                     <?php endif; ?>
                     <?php if ($website): ?>
-                    <a href="<?= esc_url($website) ?>" target="_blank"><i class="fas fa-globe"></i></a>
+                    <a href="<?= esc_url($website) ?>" target="_blank"
+                    class="fms-social-icon"
+                    data-type="site"
+                    data-doctor-id="<?= esc_attr($post_id) ?>"
+                    data-doctor-name="<?= esc_attr($title) ?>"
+                    data-fms-event-type="doctor_website"
+                    data-target-url="<?= esc_url($website) ?>">
+                    <i class="fas fa-globe"></i>
+                    </a>
                     <?php endif; ?>
                 </div>
             </div>
