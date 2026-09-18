@@ -11,6 +11,13 @@ add_action('admin_menu', function () {
 });
 
 function fms_import_doctors_page() {
+    // Defense in depth: the submenu itself already requires 'manage_options' to be
+    // reached, but this page handles file uploads (ZIP + Excel), so we gate it
+    // explicitly too rather than relying only on the menu registration capability.
+    if (!current_user_can('manage_options')) {
+        wp_die(__('You do not have permission to access this page.', 'find-my-surgeon'));
+    }
+
     echo '<h1> Import Doctors </h1> <hr>';
     echo '<div style="margin: 50px 0;"></div>';
     echo '<h2>STEP ONE</h2>';

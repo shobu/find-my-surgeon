@@ -31,6 +31,7 @@ function fms_doctor_details_callback($post) {
     </style>
 
     <div class="fms-meta">
+        <?php wp_nonce_field('fms_save_doctor_details', 'fms_doctor_details_nonce'); ?>
         <label for="fms_clinic">Clinic Name</label>
         <input type="text" name="fms_clinic" id="fms_clinic" value="<?= esc_attr($clinic) ?>">
 
@@ -68,6 +69,13 @@ function fms_doctor_details_callback($post) {
 add_action('save_post', 'fms_save_doctor_details');
 function fms_save_doctor_details($post_id) {
     if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
+
+    // Only run for the doctor CPT, and only when our metabox actually submitted the nonce
+    // (skips quick edit, bulk edit, REST/Gutenberg-only saves, and other post types).
+    if (!isset($_POST['fms_doctor_details_nonce'])) return;
+    if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['fms_doctor_details_nonce'])), 'fms_save_doctor_details')) return;
+    if (get_post_type($post_id) !== 'doctor') return;
+    if (!current_user_can('edit_post', $post_id)) return;
 
     $fields = [
         'fms_clinic',

@@ -2,6 +2,22 @@
 
 All notable changes to the Find My Surgeon plugin are documented in this file.
 
+## [2.2] - 2026-09-18
+
+### Security
+- `includes/meta-doctor-details.php`: `fms_save_doctor_details()` had no nonce
+  verification and no explicit capability check, relying only on WordPress's
+  implicit `save_post` protections. Added a nonce field to the metabox
+  (`fms_doctor_details_nonce`), verified on save, plus explicit
+  `current_user_can('edit_post', $post_id)` and post-type checks so the
+  handler only runs for the `doctor` CPT with a valid submission.
+- `includes/import-doctors.php`: `fms_import_doctors_page()` processed the ZIP
+  upload step with only a nonce check (`check_admin_referer`), no explicit
+  capability check (the Excel import step already had one, further down).
+  The page was already gated by `manage_options` via `add_submenu_page`, but
+  added an explicit `current_user_can('manage_options')` check at the top of
+  the function as defense in depth for a page that handles file uploads.
+
 ## [2.1] - 2026-09-18
 
 ### Fixed
