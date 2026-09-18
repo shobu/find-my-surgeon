@@ -2,6 +2,19 @@
 
 All notable changes to the Find My Surgeon plugin are documented in this file.
 
+## [2.3] - 2026-09-18
+
+### Added
+- Completed French (fr) and Dutch (nl) translations in `includes/translations.php`,
+  replacing the English placeholders introduced in v2.1. Three Dutch strings
+  (title, subtitle, select_label) were provided by Vakol directly and kept as-is;
+  the rest (country, city, search, download_strong, download_text, no_cities,
+  ajax_error) and all French strings were translated by Claude, pending native
+  speaker review.
+- `questions-fr.pdf` / `questions-nl.pdf` are still not present under
+  `assets/pdf/`; the download link keeps falling back to the English PDF for
+  these two languages until those files are added.
+
 ## [2.2] - 2026-09-18
 
 ### Security

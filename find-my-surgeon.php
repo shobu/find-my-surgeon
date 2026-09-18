@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Find My Surgeon
  * Description: AJAX filter for bd surgeon
- * Version: 2.2
+ * Version: 2.3
  * Author: Teamapp
  */
 
