@@ -1,8 +1,11 @@
 <?php
 if (!function_exists('fms_get_current_language')) {
     function fms_get_current_language() {
-        $uri = $_SERVER['REQUEST_URI'];
-        if (preg_match('#/(gr|en|de|it|fr|nl)/?$#', $uri, $matches)) {
+        // Use only the URL path (ignore query string / fragment) so language
+        // detection keeps working on URLs with UTM/campaign parameters, e.g.
+        // /internalbra-support/nl/?utm_source=google&utm_medium=cpc
+        $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+        if (preg_match('#/(gr|en|de|it|fr|nl)/?$#', $path, $matches)) {
             return $matches[1];
         }
         return 'en'; // default fallback

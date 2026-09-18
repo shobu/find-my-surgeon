@@ -2,6 +2,25 @@
 
 All notable changes to the Find My Surgeon plugin are documented in this file.
 
+## [2.4] - 2026-09-18
+
+### Fixed
+- `includes/translations.php`: `fms_get_current_language()` detected the
+  language by matching a regex against the raw `$_SERVER['REQUEST_URI']`,
+  which includes the query string. A URL with campaign parameters, e.g.
+  `/internalbra-support/nl/?utm_source=google&utm_medium=cpc`, failed to
+  match (the language segment was no longer at the very end of the string)
+  and silently fell back to English. Now parses the URL path only via
+  `parse_url(..., PHP_URL_PATH)` before matching, so language detection
+  works regardless of query string (UTM tags, ad click IDs, etc.).
+  Confirmed working for all 6 supported languages: en, gr, de, it, fr, nl.
+
+### Changed
+- Removed the duplicate, dead-code copy of `fms_get_current_language()` that
+  lived in `templates/filter-template.php` (guarded by `function_exists()`
+  and never actually executed, since `includes/translations.php` is required
+  first and already defines it). Only one implementation now exists.
+
 ## [2.3] - 2026-09-18
 
 ### Added

@@ -7,15 +7,10 @@ $countries = get_terms([
     'hide_empty' => false,
 ]);
 
-if (!function_exists('fms_get_current_language')) {
-    function fms_get_current_language() {
-        $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
-        if (preg_match('#/(gr|en|de|it|fr|nl)/?$#i', $path, $m)) {
-            return strtolower($m[1]); 
-        }
-        return 'en'; // fallback
-    }
-}
+// fms_get_current_language() is defined once, in includes/translations.php,
+// which is required at the top of this file. It used to be duplicated here;
+// removed to avoid the two copies drifting apart (the duplicate was dead
+// code anyway, guarded by function_exists()).
 
 function fms_get_pdf_url($basename = 'questions') {
     $lang = fms_get_current_language();
