@@ -2,6 +2,34 @@
 
 All notable changes to the Find My Surgeon plugin are documented in this file.
 
+## [2.5] - 2026-11-04
+
+### Changed
+- `includes/translations.php`: Dutch (nl) and French (fr) strings updated per
+  the client's correction documents. Only the `'nl'` and `'fr'` entries were
+  touched; en, de, it and gr are unchanged.
+  - nl `subtitle`: "Vind een chirurg met ervaring met de GalaFLEX Internal
+    Bra™ Scaffold" → "Vind een chirurg die werkt met de GalaFLEX™ interne bh"
+    (Juliette Nihot's comments on the NL page, 29/10/2026).
+  - fr, per translation document BD-174230 (28/10/2026):
+    - `title`: "Trouvez mon chirurgien" → "Trouver mon chirurgien"
+    - `subtitle`: "Trouvez votre chirurgien pour le système GalaFLEX Internal
+      Bra™" → "Trouvez votre chirurgien spécialisé dans l’armature GalaFLEX
+      Internal Bra™"
+    - `select_label`: "Veuillez sélectionner votre région :" → "Veuillez
+      sélectionner votre région d’intérêt :"
+    - `download_strong`: "Téléchargez" → "Télécharger"
+    - `download_text`: "la liste de questions à imprimer / à poser à votre
+      chirurgien" → "La fiche de questions imprimable / à poser à votre
+      chirurgien"
+
+### Notes
+- `questions-fr.pdf` / `questions-nl.pdf` are still not present under
+  `assets/pdf/`; FR and NL keep falling back to the English PDF until the
+  client provides them.
+- NL "all areas" option will be handled through the `location` taxonomy (a
+  child term under the NL country), not in code.
+
 ## [2.4] - 2026-09-18
 
 ### Fixed
